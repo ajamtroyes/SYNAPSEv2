@@ -118,6 +118,16 @@ summary:focus-visible {
   white-space: pre-wrap;
 }
 
+.entry.retrieval {
+  font-family: var(--vscode-editor-font-family);
+  color: var(--vscode-descriptionForeground);
+}
+
+.entry.retrieval ul {
+  margin: 4px 0 0;
+  padding-left: 16px;
+}
+
 .entry.meta {
   color: var(--vscode-descriptionForeground);
   font-style: italic;

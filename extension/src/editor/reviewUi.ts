@@ -88,7 +88,10 @@ export class EditorReviewUi implements ReviewUi, vscode.TextDocumentContentProvi
       return true;
     }
     this.sequence += 1;
-    const uri = vscode.Uri.from({ scheme: REVIEW_SCHEME, path: `/${session.path}`, query: String(this.sequence) });
+    // The tab shows "Review · name.py", distinct from the real file, while keeping its extension for highlighting.
+    const slash = session.path.lastIndexOf('/');
+    const reviewPath = `/${session.path.slice(0, slash + 1)}Review · ${session.path.slice(slash + 1)}`;
+    const uri = vscode.Uri.from({ scheme: REVIEW_SCHEME, path: reviewPath, query: String(this.sequence) });
     const completed = new Promise<boolean>(resolve => {
       this.active = { session, uri, rationale, position, finish: resolve };
     });

@@ -14,8 +14,9 @@ export type PanelRequest =
 export type PanelMessage =
   | { type: 'run-event'; event: RunEvent }
   | { type: 'ledger'; ledger: ContextLedger }
+  | { type: 'retrieval'; ledger: ContextLedger }
   | { type: 'user-message'; text: string }
-  | { type: 'notice'; text: string }
+  | { type: 'notice'; text: string; tone?: 'error' }
   | { type: 'mention-results'; query: string; results: { label: string; detail: string }[] };
 
 /** The agent panel. Holds no run state of its own, so reloading the webview loses nothing important. */
@@ -74,7 +75,7 @@ export class AgentPanel implements vscode.WebviewViewProvider {
     <div class="actions" role="group" aria-label="Changes from the agent">
       <button id="undo-last" type="button" class="secondary">Undo last change</button>
       <button id="undo-run" type="button" class="secondary">Undo last run</button>
-      <button id="open-session" type="button" class="secondary">Copy session ID</button>
+      <button id="open-session" type="button" class="secondary">Open session in TrueForge</button>
     </div>
     <form id="composer" class="composer">
       <label for="prompt">Ask the agent. Use @ to mention a file or symbol.</label>

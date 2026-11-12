@@ -31,6 +31,34 @@ function within(promise, what, timeoutMs = 30_000) {
   ]);
 }
 
+/** Saves a screenshot of the workbench when SYNAPSE_SCREENSHOTS is set, and does nothing otherwise. */
+async function snap(/** @type {string} */ name) {
+  const folder = process.env.SYNAPSE_SCREENSHOTS;
+  if (!folder) {
+    return;
+  }
+  await new Promise(resolve => setTimeout(resolve, 600));
+  const targets = /** @type {{type: string, url: string, webSocketDebuggerUrl: string}[]} */ (await (await fetch('http://127.0.0.1:9339/json/list')).json());
+  const page = targets.find(target => target.type === 'page' && target.url.includes('workbench'));
+  if (!page) {
+    return;
+  }
+  const socket = new WebSocket(page.webSocketDebuggerUrl);
+  await new Promise(resolve => socket.addEventListener('open', resolve, { once: true }));
+  const data = await new Promise(resolve => {
+    socket.addEventListener('message', event => {
+      const message = JSON.parse(String(event.data));
+      if (message.id === 1) {
+        resolve(message.result.data);
+      }
+    });
+    socket.send(JSON.stringify({ id: 1, method: 'Page.captureScreenshot', params: { format: 'png' } }));
+  });
+  socket.close();
+  fs.mkdirSync(folder, { recursive: true });
+  fs.writeFileSync(path.join(folder, `${name}.png`), Buffer.from(/** @type {string} */ (data), 'base64'));
+}
+
 async function run() {
   const root = /** @type {string} */ (process.env.SYNAPSE_TEST_WORKSPACE);
   const read = (/** @type {string} */ file) => (fs.existsSync(path.join(root, file)) ? fs.readFileSync(path.join(root, file), 'utf8') : undefined);
@@ -100,7 +128,10 @@ async function run() {
         const titles = await lensTitles(review.document.uri);
         assert.ok(titles.includes('Accept (Alt+Y)') && titles.includes('Reject (Alt+N)'), titles.join(' | '));
         assert.ok(titles.some(title => title.startsWith('Hunk 1 of 1')), titles.join(' | '));
+        assert.equal(path.posix.basename(review.document.uri.path), 'Review · greeter.py', 'the tab is distinct from the real file');
+        assert.equal(review.document.languageId, 'python', 'the review keeps syntax highlighting');
         assert.ok(review.document.getText().includes('# Edited by the mock model'), 'the review shows the proposal');
+        await snap('1-inline-review');
         assert.equal(read('src/greeter.py'), GREETER, 'nothing is written during review');
         await vscode.commands.executeCommand('synapse.review.acceptHunk', 1);
         await within(finished, 'the run to finish');
@@ -122,10 +153,15 @@ async function run() {
         const finished = api.controller.startAgentRun('E2E_AGENT server=synapse-editor');
         for (let index = 0; index < 3; index += 1) {
           await nextReview();
+          if (index === 0) {
+            await snap('2-agent-review');
+          }
           await vscode.commands.executeCommand('synapse.review.acceptAll');
         }
         await approveCommand();
         await within(finished, 'the run to finish');
+        await vscode.commands.executeCommand('workbench.view.extension.synapse');
+        await snap('3-agent-panel-after-run');
         assert.ok(read('src/greeter.py')?.includes('return f"Hello, {name}!"'));
         assert.ok(read('tests/test_greeter.py')?.includes('"Hello, Ada!"'));
         assert.ok(read('docs/greeting.md')?.includes('# Greeting'));
@@ -152,6 +188,7 @@ async function run() {
         const stopped = Date.now();
         await vscode.commands.executeCommand('synapse.cancel');
         await within(finished, 'the run to finish');
+        await snap('4-after-stop');
         assert.ok(Date.now() - stopped < 3000, 'stop is immediate');
         assert.equal(read('src/greeter.py'), GREETER);
         assert.equal(statuses().at(-1), 'cancelled');
@@ -192,6 +229,7 @@ async function run() {
         try {
           await selectGreeter();
           await within(vscode.commands.executeCommand('synapse.inlineEdit', 'Add a comment'), 'the run to fail');
+          await snap('5-total-failure');
           assert.ok(
             notices().some(text => text === 'Synapse could not finish. Could not reach the model vsc-dead/mock. Check that the endpoint configured in TrueForge is running. Your files were not changed.'),
             notices().join('\n'),

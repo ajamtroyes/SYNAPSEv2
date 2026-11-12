@@ -16,7 +16,7 @@
     reviewing: 'Waiting for your review',
     done: 'Finished',
     cancelled: 'Stopped. The workspace was restored.',
-    failed: 'Failed. The workspace was restored.',
+    failed: 'Failed. Your files were not changed.',
   };
 
   let messageBlock = null;
@@ -26,16 +26,22 @@
   let mentionQuery = null;
   const toolEntries = new Map();
 
-  function atBottom() {
-    return log.scrollHeight - log.scrollTop - log.clientHeight < 40;
-  }
+  // Follow new output unless the user has scrolled up to read. Checking position only when appending
+  // is not enough: entries grow in place (streamed text, tool results) and would end the following.
+  let follow = true;
+  log.addEventListener('scroll', () => {
+    follow = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+  });
 
-  function append(element) {
-    const follow = atBottom();
-    log.appendChild(element);
+  function keepFollowing() {
     if (follow) {
       log.scrollTop = log.scrollHeight;
     }
+  }
+
+  function append(element) {
+    log.appendChild(element);
+    keepFollowing();
   }
 
   function entry(className, text) {
@@ -53,7 +59,6 @@
   }
 
   function appendToken(event) {
-    const follow = atBottom();
     if (messageId !== event.messageId) {
       messageId = event.messageId;
       messageBlock = document.createElement('div');
@@ -61,9 +66,7 @@
       log.appendChild(messageBlock);
     }
     messageBlock.textContent += event.text;
-    if (follow) {
-      log.scrollTop = log.scrollHeight;
-    }
+    keepFollowing();
   }
 
   function summarizeArgs(call) {
@@ -74,10 +77,11 @@
   function onRunEvent(event) {
     switch (event.type) {
       case 'status':
-        status.textContent = event.detail ? `${STATUS_TEXT[event.status]}: ${event.detail}` : STATUS_TEXT[event.status];
+        // A failure's raw detail is technical; the extension follows it with a plain-language notice.
+        status.textContent = event.detail && event.status !== 'failed' ? `${STATUS_TEXT[event.status]}: ${event.detail}` : STATUS_TEXT[event.status];
         setRunning(event.status === 'running' || event.status === 'reviewing');
         if (event.status === 'failed' && event.detail) {
-          entry('error', event.detail);
+          entry('meta', `Details: ${event.detail}`);
         }
         break;
       case 'session':
@@ -170,6 +174,23 @@
       wrapper.appendChild(unresolved);
     }
     ledger.appendChild(wrapper);
+  }
+
+  /** A retrieval the agent asked for mid-run. The run's main context stays in the header. */
+  function renderRetrieval(data) {
+    messageId = null;
+    const details = document.createElement('details');
+    details.className = 'entry retrieval';
+    const summary = document.createElement('summary');
+    summary.textContent = `Agent retrieved ${data.entries.length} snippets (${data.usedTokens} of ${data.budgetTokens} tokens)`;
+    const list = document.createElement('ul');
+    for (const item of data.entries) {
+      const row = document.createElement('li');
+      row.textContent = `${item.path}:${item.lines}: ${item.why}`;
+      list.appendChild(row);
+    }
+    details.append(summary, list);
+    append(details);
   }
 
   function closeMentions() {
@@ -308,12 +329,15 @@
       case 'ledger':
         renderLedger(data.ledger);
         break;
+      case 'retrieval':
+        renderRetrieval(data.ledger);
+        break;
       case 'user-message':
         messageId = null;
         entry('user', data.text);
         break;
       case 'notice':
-        entry('meta', data.text);
+        entry(data.tone === 'error' ? 'error' : 'meta', data.text);
         break;
       case 'mention-results':
         renderMentions(data.query, data.results);

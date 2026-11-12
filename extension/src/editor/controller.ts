@@ -106,7 +106,7 @@ export class RunController implements vscode.Disposable {
         runId: () => this.current?.id,
         runCommand: command => this.commands.run(command, { cwd: workspace.root, pathPrepend: venvBinDirectories(workspace.root) }),
         onRetrieval: result => {
-          this.panel.post({ type: 'ledger', ledger: buildLedger({ resolved: [], unresolved: [], usedTokens: 0 }, result, result.budgetTokens) });
+          this.panel.post({ type: 'retrieval', ledger: buildLedger({ resolved: [], unresolved: [], usedTokens: 0 }, result, result.budgetTokens) });
         },
       }),
     );
@@ -267,6 +267,8 @@ export class RunController implements vscode.Disposable {
     this.panel.post({ type: 'run-event', event });
     if (event.type === 'session') {
       this.lastSessionId = event.sessionId;
+      // Showing the model makes a fallback visible at a glance, which Task C's verification needs.
+      this.statusBar.text = `$(sync~spin) Synapse: running on ${event.model} (click to stop)`;
     }
     if (event.type === 'model-switch') {
       void vscode.window.showInformationMessage(`Synapse: ${event.from} failed, continuing with ${event.to}.`);
@@ -284,7 +286,7 @@ export class RunController implements vscode.Disposable {
         break;
       case 'failed': {
         const text = `Synapse could not finish. ${describeFailure(result.message, readSettings().models)} Your files were not changed.`;
-        this.panel.post({ type: 'notice', text });
+        this.panel.post({ type: 'notice', text, tone: 'error' });
         void vscode.window.showErrorMessage(text);
         break;
       }
@@ -360,8 +362,9 @@ export class RunController implements vscode.Disposable {
         break;
       case 'openSession':
         if (this.lastSessionId) {
+          // TrueForge's UI serves each session at /sessions/<id>, which shows its turns and tool calls.
+          void vscode.env.openExternal(vscode.Uri.parse(new URL(`/sessions/${this.lastSessionId}`, readSettings().baseUrl).toString()));
           void vscode.env.clipboard.writeText(this.lastSessionId);
-          void vscode.window.showInformationMessage(`Session ID copied. Find it under Sessions at ${readSettings().baseUrl}`);
         } else {
           void vscode.window.showInformationMessage('No session yet: start a run first.');
         }

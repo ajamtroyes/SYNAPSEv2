@@ -63,8 +63,20 @@ try {
     cachePath: join(ROOT, '.vscode-test'),
     extensionDevelopmentPath: join(ROOT, 'extension'),
     extensionTestsPath: join(ROOT, 'tests/vscode/suite.cjs'),
-    launchArgs: [workspace, '--disable-extensions', '--disable-gpu', '--skip-welcome', '--skip-release-notes', '--disable-workspace-trust'],
-    extensionTestsEnv: { SYNAPSE_TEST_WORKSPACE: workspace },
+    launchArgs: [
+      workspace,
+      '--disable-extensions',
+      '--disable-gpu',
+      '--skip-welcome',
+      '--skip-release-notes',
+      '--disable-workspace-trust',
+      // SYNAPSE_SCREENSHOTS=<folder> saves screenshots at key moments, through Chromium's DevTools protocol.
+      ...(process.env.SYNAPSE_SCREENSHOTS ? ['--remote-debugging-port=9339'] : []),
+    ],
+    extensionTestsEnv: {
+      SYNAPSE_TEST_WORKSPACE: workspace,
+      ...(process.env.SYNAPSE_SCREENSHOTS ? { SYNAPSE_SCREENSHOTS: resolve(process.env.SYNAPSE_SCREENSHOTS) } : {}),
+    },
   });
 } catch (error) {
   console.error(error);
