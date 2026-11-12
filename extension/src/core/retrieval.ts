@@ -27,6 +27,10 @@ function stem(term: string): string {
   if (term.length > 5 && term.endsWith('ing')) {
     return term.slice(0, -3);
   }
+  // "retried" and "retries" must meet "retry".
+  if (term.length > 4 && (term.endsWith('ied') || term.endsWith('ies'))) {
+    return `${term.slice(0, -3)}y`;
+  }
   if (term.length > 4 && term.endsWith('ed')) {
     return term.slice(0, -2);
   }
@@ -211,6 +215,12 @@ const INTENT_TERMS = new Set(['test', 'unittest', 'doc', 'docs', 'document', 'do
 /** Changelogs mention every feature ever added, so their matches say little about where code lives. */
 const CHANGELOG = /(^|\/)(CHANGES|CHANGELOG|HISTORY|RELEASES?|NEWS)(\.[a-z]+)?$/i;
 const CHANGELOG_PENALTY = 0.25;
+/**
+ * A change starts in code. Prose that describes the code, such as design notes, matches a request's words
+ * well but is rarely what needs editing. The docs that do need editing arrive as companions instead.
+ */
+const PROSE_PENALTY = 0.5;
+const isProse = (path: string): boolean => /\.(md|mdx|rst|txt)$/i.test(path);
 /** A clipped snippet smaller than this cannot show the agent anything useful. */
 const MIN_CLIPPED_TOKENS = 30;
 const MAX_FILES = 10;
@@ -318,7 +328,7 @@ function rankFiles(scored: readonly ScoredChunk[], allPaths: readonly string[], 
       chunks,
       // Only terms that actually discriminate are worth showing the user as a reason.
       pathMatches: matched.filter(term => (weights.get(term) ?? 0) >= PATH_REASON_THRESHOLD),
-      score: (content + pathScore) * (CHANGELOG.test(path) ? CHANGELOG_PENALTY : 1),
+      score: (content + pathScore) * (CHANGELOG.test(path) ? CHANGELOG_PENALTY : isProse(path) ? PROSE_PENALTY : 1),
     });
   }
   return ranked.sort((a, b) => b.score - a.score || a.path.localeCompare(b.path));
@@ -419,7 +429,11 @@ export async function retrieve(
   query: string,
   options: RetrievalOptions,
 ): Promise<RetrievalResult> {
-  const allTerms = [...new Set(tokenize(query))];
+  const words = tokenize(query);
+  // People write "falling back" or "set up" where code says `fallback` or `setup`, so adjacent words
+  // are also tried joined. A joined term that never occurs in the code simply scores nothing.
+  const joined = words.slice(1).map((word, index) => `${words[index] ?? ''}${word}`);
+  const allTerms = [...new Set([...words, ...joined])];
   const contentTerms = allTerms.filter(term => !INTENT_TERMS.has(term));
   const queryTerms = contentTerms.length > 0 ? contentTerms : allTerms;
   const excluded = options.excludePaths ?? new Set<string>();

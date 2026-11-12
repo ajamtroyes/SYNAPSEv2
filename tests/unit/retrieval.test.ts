@@ -113,6 +113,25 @@ describe('retrieve', () => {
     expect(result.usedTokens).toBeLessThanOrEqual(400);
   });
 
+  it('matches "falling back" to fallback and "retried" to retry, as people write them', async () => {
+    const { source } = corpus({
+      'src/fallback.ts': 'export class FallbackPolicy {\n  retry() {}\n}\n',
+      'src/other.ts': 'export function render() {\n  return 1;\n}\n',
+    });
+    const result = await retrieve(source, 'how often it is retried before falling back', { budgetTokens: 1000 });
+    expect(result.snippets[0]?.path).toBe('src/fallback.ts');
+    expect(tokenize('retried retries')).toEqual(['retry', 'retry']);
+  });
+
+  it('prefers the code to prose that only describes it', async () => {
+    const { source } = corpus({
+      'docs/design.md': '# Widget cache\n\nThe widget cache keeps widget results so the widget cache stays warm.\n',
+      'src/widget_cache.py': 'def widget_cache():\n    return {}\n',
+    });
+    const result = await retrieve(source, 'widget cache', { budgetTokens: 1000 });
+    expect(result.snippets[0]?.path).toBe('src/widget_cache.py');
+  });
+
   it('treats # as a heading only in Markdown, since in Python it is a comment', async () => {
     const python = Array.from({ length: 10 }, (_, index) => `# widget note ${String(index)}`).join('\n');
     const markdown = '# Widgets\n\nAll about the widget.\n\nMore text here.\n\n# Other\n\nNothing relevant here.\n\nAt all.\n';
