@@ -80,7 +80,7 @@ npm run demo:flask -- setup
 | Review a hunk | Use Accept or Reject above it, or `Alt+Y` and `Alt+N`, with `Alt+]` and `Alt+[` to move between hunks |
 | Stop a run | Stop button, or `Ctrl+Alt+.`. The workspace is put back as it was |
 | Take a change back | **Undo last change** or **Undo last run** in the panel |
-| See what the agent did | **Copy session ID**, then find it under Sessions at <http://localhost:8790> |
+| See what the agent did | **Open session in TrueForge**, which opens the run's turns and tool calls in TrueForge's UI |
 
 ## How it works
 

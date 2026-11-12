@@ -7,7 +7,7 @@
       "request": "launch",
       "args": ["--extensionDevelopmentPath=${workspaceFolder}/extension", "${workspaceFolder}/.cache/flask-demo"],
       "outFiles": ["${workspaceFolder}/extension/dist/**/*.js"],
-      "preLaunchTask": "Build extension"
+      "preLaunchTask": "Prepare to run"
     }
   ]
 }

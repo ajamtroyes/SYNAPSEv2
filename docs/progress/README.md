@@ -18,6 +18,7 @@ thing still unproven is behaviour on a real model, which none of our tests can c
 | MCP server, including auth, tools and approved writes | Integration tests over real HTTP with the official MCP client |
 | Retrieval on the real Flask 3.1.3 for Task B | `npm run test:golden` |
 | Types check against the real SDK and VS Code API, and the extension bundles | `npm run typecheck`, `npm run build` |
+| The Flask demo: setup, all three verifications and reset, on the pinned checkout | Ran `npm run demo:flask` in a scratch folder |
 
 ### Not verified yet
 
@@ -25,7 +26,6 @@ thing still unproven is behaviour on a real model, which none of our tests can c
 | --- | --- | --- |
 | How the review editor and panel look on video | F5, see the [README](../../README.md) | Tests check behaviour, not colours, layout or readability |
 | **Real model behaviour** | Tasks A, B and C with a real model | Whether the agent uses the tools well, states its choices and uses subagents depends on the model and our instructions |
-| `npm run demo:flask -- setup` | Run it | Installs Flask's dependencies from PyPI |
 | Clean-clone setup by someone else | Follow the README on a fresh machine | It is a submission requirement |
 
 ## Plan
@@ -49,6 +49,9 @@ Work is listed in the [backlog](backlog.md).
 
 Add a line when something real changes, most recent first.
 
+- **12 Nov:** Ran the Flask demo for real. Task B's own check, `pytest tests/test_cli.py -q`, failed before any change with the
+  newest pytest, so setup now installs the versions Flask's `uv.lock` pins: 58 tests pass. F5 and setup now catch the stray file
+  that pressing F5 before setup creates.
 - **12 Nov:** Added `npm run test:vscode`, which drives the built extension in a real VS Code: 9 of 9. Failures now read in plain
   language. `old_text` matching tolerates whitespace and indentation slips from weaker models, still requiring a single match.
 - **12 Nov:** Ran TrueForge live for the first time. The smoke test passes 11 of 11 after fixing a bug in the script itself, and new

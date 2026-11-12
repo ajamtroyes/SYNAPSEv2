@@ -7,6 +7,18 @@
       "script": "build",
       "group": { "kind": "build", "isDefault": true },
       "problemMatcher": []
+    },
+    {
+      "label": "Check Flask demo",
+      "type": "shell",
+      "command": "node examples/flask-demo/check-demo.mjs .cache/flask-demo",
+      "problemMatcher": []
+    },
+    {
+      "label": "Prepare to run",
+      "dependsOn": ["Build extension", "Check Flask demo"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
     }
   ]
 }

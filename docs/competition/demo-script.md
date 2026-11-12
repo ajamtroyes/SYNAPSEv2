@@ -20,7 +20,7 @@ Timings are a starting point. Fill in the real timestamps for the write-up's sco
 | 1:10 | **Task B** | Paste the instruction with no files named. Pause on the context ledger: files and reasons | A2, B1 |
 | 1:30 | Review | Hunks in three or more files. Accept most; rejecting one shows per-hunk control | A2, B2 |
 | 2:10 | Verify B | `pytest tests/test_cli.py -q` passes, `flask --help` lists `config`, masked JSON, `git diff --stat` | C1 |
-| 2:30 | Session | TrueForge Sessions view: turns, tool calls, subagent or deferred tools if used | B4 |
+| 2:30 | Session | **Open session in TrueForge** from the panel: turns, tool calls, subagent or deferred tools if used | B4 |
 | 2:45 | Reset | Undo Last Run, `git status` clean, ready for Task C | B2 |
 | 2:55 | **Task C** | Primary model broken. Repeat Task A. Editor stays responsive, notice says it switched | B3 |
 | 3:25 | Verify C | Reject the diff, then `git status` shows nothing changed | B3 |

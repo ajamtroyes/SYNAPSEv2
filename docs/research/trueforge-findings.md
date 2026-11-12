@@ -81,9 +81,10 @@ end-to-end tests of the extension's own code (`npm run test:e2e`). Rerun both af
 
 ## Showing the session
 
-The Sessions view lists turns, tool calls, subagents, tokens and timing, and each session has a copyable ID
-(`docs/sessions.mdx`). We did not find a stable deep link, so the panel offers **Copy session ID**. Open the UI at
-`http://localhost:8790`. Check this before recording.
+The Sessions view lists turns, tool calls, subagents, tokens and timing (`docs/sessions.mdx`). The UI's router has a
+`/sessions/:sessionId` route, and the server answers it with the app for any request accepting `text/html`, as browsers do
+(checked live). So the panel's **Open session in TrueForge** opens `http://localhost:8790/sessions/<id>` directly. The route is not
+documented, so check it still works after changing the TrueForge version.
 
 ## Contributing, for Round 2
 
