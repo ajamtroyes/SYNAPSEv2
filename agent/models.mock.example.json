@@ -1,0 +1,14 @@
+{
+  "$comment": "Needs no API key. Start the scripted model first with: npm run mock-model. It streams a fixed reply in agent mode and proposes a fixed edit for inline edit, which is enough to work on the editor side for free.",
+  "providers": [
+    {
+      "type": "custom",
+      "name": "mock",
+      "base_url": "http://127.0.0.1:11500/v1",
+      "models": [
+        { "name": "scripted", "model_id": "scripted", "properties": { "context_length": 100000, "max_output_tokens": 4096 } }
+      ]
+    }
+  ],
+  "chain": ["mock/scripted"]
+}

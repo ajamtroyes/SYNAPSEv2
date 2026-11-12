@@ -1,0 +1,32 @@
+{
+  "$comment": "Copy to agent/models.json (ignored by git), edit, then run: npm run setup:models. Keys never go here: name an environment variable in api_key_env and set it in .env. A model's full name is provider/name, and chain lists them with the primary first. These are examples from TrueForge's catalog, not a team decision: see docs/decisions/README.md.",
+  "providers": [
+    {
+      "type": "google-gemini",
+      "api_key_env": "GEMINI_API_KEY",
+      "models": [
+        { "name": "gemini-3-1-flash-lite", "model_id": "gemini-3.1-flash-lite", "properties": {} }
+      ]
+    },
+    {
+      "type": "anthropic",
+      "api_key_env": "ANTHROPIC_API_KEY",
+      "models": [
+        { "name": "claude-fable-5-1", "model_id": "claude-fable-5-1", "properties": {} }
+      ]
+    },
+    {
+      "type": "custom",
+      "name": "local-ollama",
+      "base_url": "http://127.0.0.1:11434/v1",
+      "models": [
+        {
+          "name": "local-coder",
+          "model_id": "REPLACE_WITH_YOUR_MODEL_TAG",
+          "properties": { "context_length": 32768, "max_output_tokens": 8192 }
+        }
+      ]
+    }
+  ],
+  "chain": ["google-gemini/gemini-3-1-flash-lite", "anthropic/claude-fable-5-1"]
+}
