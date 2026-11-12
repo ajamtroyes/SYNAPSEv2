@@ -1,6 +1,6 @@
 # Write-up template
 
-Export to a **PDF of 1 to 3 pages**, with these eight headings in this order. The notes in italics are
+**Start from [write-up-draft.md](write-up-draft.md), which already holds the content.** Export to a **PDF of 1 to 3 pages**, with these eight headings in this order. The notes in italics are
 for us, so delete them. Be accurate: criterion C2's top anchor rewards an accurate scorecard and an honest
 limitations section.
 

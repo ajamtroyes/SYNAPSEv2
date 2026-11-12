@@ -109,6 +109,18 @@ describe('AgentRun', () => {
     expect(ws.writes).toEqual([]);
   });
 
+  it('totals tokens and cost across turns, for the write-up', async () => {
+    const turn = (totalTokens: number, costUsd?: number): GatewayEvent => ({
+      type: 'turn-done',
+      outcome: { status: 'done', output: '', totalTokens, ...(costUsd === undefined ? {} : { costUsd }) },
+    });
+    const { run, events } = setup((_input, index) => (index === 1 ? [pendingEdit('c'), turn(100, 0.001)] : [turn(250, 0.002)]));
+    await run.start('x');
+    const usage = events.find(event => event.type === 'usage');
+    expect(usage).toMatchObject({ type: 'usage', totalTokens: 350 });
+    expect(usage?.type === 'usage' ? usage.costUsd : 0).toBeCloseTo(0.003);
+  });
+
   it('applies an edit only after review approves it, via the tool', async () => {
     const context = setup(async (_input, turn) => {
       if (turn === 1) {

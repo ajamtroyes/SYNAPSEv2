@@ -46,6 +46,8 @@ export type RunEvent =
   | { type: 'retry'; model: string; attempt: number; delayMs: number; reason: string }
   | { type: 'model-switch'; from: string; to: string; reason: string }
   | { type: 'rolled-back'; report: UndoReport }
+  /** Totals across the run's turns, as TrueForge reports them. The write-up must state rough costs. */
+  | { type: 'usage'; totalTokens: number; costUsd?: number }
   | Exclude<GatewayEvent, { type: 'turn-done' | 'approval-required' | 'turn-started' }>;
 
 export type RunResult =
@@ -96,6 +98,7 @@ export class AgentRun {
   private sessionId: string | undefined;
   private cancelledReport: Promise<UndoReport> | undefined;
   private progressed = false;
+  private usage: { totalTokens: number; costUsd?: number } = { totalTokens: 0 };
 
   constructor(private readonly deps: AgentRunDeps) {
     this.policy = new FallbackPolicy(deps.fallback);
@@ -169,6 +172,7 @@ export class AgentRun {
         deps.onEvent({ type: 'status', status: 'running' });
         continue;
       }
+      deps.onEvent({ type: 'usage', ...this.usage });
       deps.onEvent({ type: 'status', status: 'done' });
       return { status: 'done', output: turn.outcome.output, changedPaths: deps.journal.changedPaths(deps.runId) };
     }
@@ -190,6 +194,12 @@ export class AgentRun {
             break;
           case 'turn-done':
             outcome = event.outcome;
+            if (outcome.status === 'done') {
+              this.usage.totalTokens += outcome.totalTokens ?? 0;
+              if (outcome.costUsd !== undefined) {
+                this.usage.costUsd = (this.usage.costUsd ?? 0) + outcome.costUsd;
+              }
+            }
             break;
           default:
             if (event.type === 'token' || event.type === 'tool-result') {

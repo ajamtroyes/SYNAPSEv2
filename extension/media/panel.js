@@ -129,6 +129,11 @@
       case 'model-switch':
         entry('warning', `${event.from} failed (${event.reason}). Switching to ${event.to}.`);
         break;
+      case 'usage': {
+        const cost = event.costUsd === undefined ? '' : `, about $${event.costUsd.toFixed(4)}`;
+        entry('meta', `This run used ${event.totalTokens.toLocaleString()} tokens${cost}.`);
+        break;
+      }
       case 'rolled-back':
         if (event.report.restored.length > 0) {
           entry('meta', `Restored: ${event.report.restored.join(', ')}`);

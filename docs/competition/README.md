@@ -6,7 +6,7 @@ If this page and the brief disagree, the brief wins. The latest information is o
 - [scoring.md](scoring.md): the 100 points, and our plan for the top anchor of each
 - [fixed-tasks.md](fixed-tasks.md): the three tasks, word for word
 - [demo-script.md](demo-script.md): how to fit it all into four minutes
-- [write-up-template.md](write-up-template.md): the required eight headings
+- [write-up-template.md](write-up-template.md): the required eight headings, and [a draft](write-up-draft.md) with the content filled in
 
 ## Key dates
 
