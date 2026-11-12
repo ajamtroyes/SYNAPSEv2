@@ -1,0 +1,227 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  color: var(--vscode-foreground);
+  background: var(--vscode-sideBar-background);
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 8px;
+  gap: 8px;
+}
+
+.status {
+  color: var(--vscode-descriptionForeground);
+}
+
+.ledger {
+  max-height: 35vh;
+  overflow-y: auto;
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+
+.ledger summary {
+  cursor: pointer;
+}
+
+.ledger h2 {
+  display: inline;
+  margin: 0;
+  font-size: inherit;
+  font-weight: 600;
+}
+
+.ledger ul {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ledger li {
+  margin-bottom: 4px;
+  overflow-wrap: anywhere;
+}
+
+.ledger p {
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+}
+
+code,
+pre {
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size);
+}
+
+.why {
+  color: var(--vscode-descriptionForeground);
+}
+
+.log {
+  flex: 1;
+  min-height: 80px;
+  overflow-y: auto;
+  outline-offset: 2px;
+}
+
+.log:focus-visible,
+button:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+}
+
+.entry {
+  margin-bottom: 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.entry.user {
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: var(--vscode-editor-inactiveSelectionBackground);
+}
+
+.entry.subagent {
+  padding-left: 8px;
+  border-left: 2px solid var(--vscode-panel-border);
+}
+
+.entry.tool {
+  font-family: var(--vscode-editor-font-family);
+  color: var(--vscode-descriptionForeground);
+}
+
+.entry.tool::before {
+  content: '› ';
+}
+
+.entry.tool pre {
+  max-height: 200px;
+  margin: 4px 0 0;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+.entry.meta {
+  color: var(--vscode-descriptionForeground);
+  font-style: italic;
+}
+
+.entry.warning {
+  color: var(--vscode-editorWarning-foreground);
+}
+
+.entry.error,
+.error {
+  color: var(--vscode-errorForeground);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.composer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.composer label,
+.hint {
+  color: var(--vscode-descriptionForeground);
+}
+
+.composer textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 6px;
+  resize: vertical;
+  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, transparent);
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.composer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mentions {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  max-height: 200px;
+  margin: 0 0 4px;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  background: var(--vscode-quickInput-background);
+  border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+  border-radius: 2px;
+}
+
+.mentions li {
+  padding: 3px 6px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.mentions li[aria-selected='true'] {
+  color: var(--vscode-list-activeSelectionForeground);
+  background: var(--vscode-list-activeSelectionBackground);
+}
+
+button {
+  padding: 4px 10px;
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+  border: 1px solid var(--vscode-button-border, transparent);
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+button:hover {
+  background: var(--vscode-button-hoverBackground);
+}
+
+button.secondary {
+  color: var(--vscode-button-secondaryForeground);
+  background: var(--vscode-button-secondaryBackground);
+}
+
+button.secondary:hover {
+  background: var(--vscode-button-secondaryHoverBackground);
+}
+
+button.danger {
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-statusBarItem-errorBackground, var(--vscode-button-background));
+}

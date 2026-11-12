@@ -1,0 +1,188 @@
+{
+  "name": "synapse-agent",
+  "displayName": "Synapse Agent",
+  "description": "Editor-native coding agent whose loop runs on TrueForge. Every change is reviewed hunk by hunk before it touches disk.",
+  "version": "0.1.0",
+  "publisher": "synapse-team",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ajamtroyes/SYNAPSEv2"
+  },
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "AI",
+    "Programming Languages"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "synapse.inlineEdit",
+        "title": "Inline Edit Selection",
+        "category": "Synapse"
+      },
+      {
+        "command": "synapse.cancel",
+        "title": "Stop Current Run",
+        "category": "Synapse",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "synapse.undoLast",
+        "title": "Undo Last Applied Change",
+        "category": "Synapse"
+      },
+      {
+        "command": "synapse.undoRun",
+        "title": "Undo All Changes From Last Run",
+        "category": "Synapse"
+      },
+      {
+        "command": "synapse.checkSetup",
+        "title": "Check TrueForge Setup",
+        "category": "Synapse"
+      },
+      {
+        "command": "synapse.review.acceptHunk",
+        "title": "Accept Hunk at Cursor",
+        "category": "Synapse Review"
+      },
+      {
+        "command": "synapse.review.rejectHunk",
+        "title": "Reject Hunk at Cursor",
+        "category": "Synapse Review"
+      },
+      {
+        "command": "synapse.review.acceptAll",
+        "title": "Accept All Remaining Hunks",
+        "category": "Synapse Review"
+      },
+      {
+        "command": "synapse.review.rejectAll",
+        "title": "Reject All Remaining Hunks",
+        "category": "Synapse Review"
+      },
+      {
+        "command": "synapse.review.nextHunk",
+        "title": "Go to Next Hunk",
+        "category": "Synapse Review"
+      },
+      {
+        "command": "synapse.review.previousHunk",
+        "title": "Go to Previous Hunk",
+        "category": "Synapse Review"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "synapse.inlineEdit",
+        "key": "ctrl+alt+k",
+        "mac": "cmd+alt+k",
+        "when": "editorTextFocus && editorHasSelection && !synapse.running"
+      },
+      {
+        "command": "synapse.cancel",
+        "key": "ctrl+alt+.",
+        "mac": "cmd+alt+.",
+        "when": "synapse.running"
+      },
+      {
+        "command": "synapse.review.acceptHunk",
+        "key": "alt+y",
+        "when": "synapse.reviewing && resourceScheme == synapse-review"
+      },
+      {
+        "command": "synapse.review.rejectHunk",
+        "key": "alt+n",
+        "when": "synapse.reviewing && resourceScheme == synapse-review"
+      },
+      {
+        "command": "synapse.review.nextHunk",
+        "key": "alt+]",
+        "when": "synapse.reviewing && resourceScheme == synapse-review"
+      },
+      {
+        "command": "synapse.review.previousHunk",
+        "key": "alt+[",
+        "when": "synapse.reviewing && resourceScheme == synapse-review"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "synapse",
+          "title": "Synapse",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "synapse": [
+        {
+          "id": "synapse.panel",
+          "type": "webview",
+          "name": "Agent"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Synapse",
+      "properties": {
+        "synapse.trueforgeUrl": {
+          "type": "string",
+          "default": "http://localhost:8790",
+          "markdownDescription": "Base URL of the TrueForge server. Start one locally with `npm run trueforge`."
+        },
+        "synapse.models": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "markdownDescription": "Ordered model names as configured in TrueForge, in `provider/model` form. The first is the primary; the rest are automatic fallbacks. Run `npm run setup:models` to see the value to use."
+        },
+        "synapse.retry.attemptsPerModel": {
+          "type": "integer",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 5,
+          "description": "How many times to try one model on a transient failure before moving to the next."
+        },
+        "synapse.retry.backoffMs": {
+          "type": "integer",
+          "default": 1000,
+          "minimum": 0,
+          "description": "Base delay before a retry. It doubles on each further attempt."
+        },
+        "synapse.context.budgetTokens": {
+          "type": "integer",
+          "default": 8000,
+          "minimum": 500,
+          "description": "Token budget for mentioned files and automatically retrieved code in the first message of a run."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "package": "npm run build && npx --yes @vscode/vsce@3 package --no-dependencies --skip-license --out ../synapse-agent.vsix"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.0",
+    "@truefoundry/trueforge-sdk": "0.183.0",
+    "diff": "^8.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "~1.95.0",
+    "esbuild": "^0.25.0"
+  }
+}
