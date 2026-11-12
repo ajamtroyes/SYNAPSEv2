@@ -60,16 +60,37 @@ describe('mock model', () => {
   });
 
   it('wraps a deferred call in the shape the harness expects', () => {
-    const reply = decide({ messages: [{ role: 'user', content: 'SMOKE_DEFERRED' }], tools: [tool('call_tool')] }) as { toolCall: { args: object } };
-    expect(reply.toolCall.args).toEqual({ mcp_server: 'smoke-editor', tool_name: 'smoke_write', input: { path: 'b.txt', content: 'deferred\n' } });
+    const reply = decide({ messages: [{ role: 'user', content: 'SMOKE_DEFERRED' }], tools: [tool('call_tool')] }) as { toolCalls: { args: object }[] };
+    expect(reply.toolCalls[0]?.args).toEqual({ mcp_server: 'smoke-editor', tool_name: 'smoke_write', input: { path: 'b.txt', content: 'deferred\n' } });
   });
 
   it('proposes an edit for an inline selection, so that flow works with no real model', () => {
     const content = '<task>\nchange it\n</task>\n\n<selection path="a.py" lines="1-2">\ndef a():\n    pass\n</selection>';
-    const reply = decide({ messages: [{ role: 'user', content }], tools: [tool('propose_edit')] }) as { toolCall: { name: string; args: { path: string; edits: { old_text: string }[] } } };
-    expect(reply.toolCall.name).toBe('propose_edit');
-    expect(reply.toolCall.args.path).toBe('a.py');
-    expect(reply.toolCall.args.edits[0]?.old_text).toBe('def a():\n    pass');
+    const reply = decide({ messages: [{ role: 'user', content }], tools: [tool('propose_edit')] }) as {
+      toolCalls: { name: string; args: { path: string; edits: { old_text: string }[] } }[];
+    };
+    expect(reply.toolCalls[0]?.name).toBe('propose_edit');
+    expect(reply.toolCalls[0]?.args.path).toBe('a.py');
+    expect(reply.toolCalls[0]?.args.edits[0]?.old_text).toBe('def a():\n    pass');
+  });
+
+  it('plays a scripted agent run one step per assistant message, falling back to call_tool for deferred tools', () => {
+    const user = { role: 'user', content: '<task>E2E_AGENT server=synapse-e2e</task>' };
+    const first = decide({ messages: [user], tools: [tool('retrieve_context')] }) as { toolCalls: { name: string }[] };
+    expect(first.toolCalls[0]?.name).toBe('retrieve_context');
+    const assistant = { role: 'assistant', content: '' };
+    const third = decide({ messages: [user, assistant, { role: 'tool' }, assistant, { role: 'tool' }], tools: [tool('call_tool')] }) as {
+      toolCalls: { name: string; args: { mcp_server: string; tool_name: string } }[];
+    };
+    expect(third.toolCalls[0]).toMatchObject({ name: 'call_tool', args: { mcp_server: 'synapse-e2e', tool_name: 'propose_edit' } });
+  });
+
+  it('sends parallel tool calls with separate indexes', async () => {
+    const assistant = { role: 'assistant', content: '' };
+    const messages = [{ role: 'user', content: 'E2E_AGENT' }, assistant, { role: 'tool' }, assistant, { role: 'tool' }, assistant, { role: 'tool' }];
+    const response = await post({ model: 'mock', stream: true, messages, tools: [tool('propose_edit'), tool('create_file')] });
+    const fragments = (await readStream(response)).flatMap(chunk => chunk.choices[0]?.delta.tool_calls ?? []) as unknown as { index: number }[];
+    expect(new Set(fragments.map(fragment => fragment.index))).toEqual(new Set([0, 1]));
   });
 
   it('stops calling tools once a tool has answered, so runs always end', () => {

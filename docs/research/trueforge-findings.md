@@ -3,9 +3,9 @@
 What we rely on, and how we know it. Read from the repository at commit `9c116a98` (3 November 2026), matching npm version
 `0.183.0`. Paths are relative to that repository.
 
-**Verified how:** *Docs* means stated in the documentation. *Source* means read in the code. Neither means it has been seen
-running. **Nothing here has been observed against a live server yet.** `npm run smoke` tests each row marked with ✓ below, and
-`npm run smoke -- --write` saves its results to `docs/research/smoke-results.md`. Update this note once it has run.
+**Verified how:** *Docs* means stated in the documentation and *Source* means read in the code. **Rows marked ✓ were also
+observed against a live TrueForge 0.183.0 on 12 November 2026**, by `npm run smoke` ([results](smoke-results.md)) and by the
+end-to-end tests of the extension's own code (`npm run test:e2e`). Rerun both after changing the TrueForge version.
 
 ## Running it
 
@@ -31,6 +31,7 @@ running. **Nothing here has been observed against a live server yet.** `npm run 
 | A stream opens with `turn.created` and closes with `turn.done`, whose status is `done`, `cancelled` or `error` | Docs: `docs/api/use-agent.mdx` | ✓ |
 | Tokens arrive as `model.message.delta`, merged into a base `model.message` by id | Docs: `docs/api/overview.mdx` | ✓ |
 | Creating a new turn cancels any turn running in that session | Docs: `docs/api/use-agent.mdx` | |
+| Turn events stream as they happen with an MCP server attached. Our first smoke run suggested otherwise, but that was a bug in the script, which read the whole stream before processing it | Live | ✓ |
 | Default SDK timeout is 60 seconds, so long streams must raise it | Docs: `docs/api/quickstart.mdx` | |
 
 ## Approvals
@@ -39,10 +40,10 @@ running. **Nothing here has been observed against a live server yet.** `npm run 
 | --- | --- | --- |
 | `require_approval_for_tools` defaults to `@write` and `@destructive`, which **skip tools the server did not label**. Name tools to be sure | Docs: `docs/create-agent/overview.mdx` | ✓ |
 | A pause ends the turn. Resume with a new turn holding `user.tool_approval` items, which cannot be mixed with a user message | Docs: `docs/api/use-agent.mdx` | ✓ |
-| A resume must answer every pending approval for that thread | Source: `core/runtime/AgentThread.ts:377` | |
+| A resume must answer every pending approval for that thread. Two parallel calls in one message pause together and resume together | Source: `core/runtime/AgentThread.ts:377`; live | ✓ |
 | Subagent tool calls still pause for approval, on their own `thread_id`. Subagents cannot ask questions | Docs: `docs/key-features/subagents.mdx` | |
 | A pending call's name and arguments are in the `model.message` named by `source_event_id` | Docs: `docs/api/use-agent.mdx` | ✓ |
-| A deferred call goes through the `call_tool` meta tool, with arguments `{ mcp_server, tool_name, input }`. `tool_info` resolves to the underlying tool, and approval still applies | Source: `core/runtime/DeferredTool.ts:45-49, 111-145, 303-323` | ✓ |
+| A deferred call goes through the `call_tool` meta tool, with arguments `{ mcp_server, tool_name, input }`, and approval still applies. **Correction from live testing:** the call's `tool_info.name` is `call_tool`, not the underlying tool, so the real name must be read from `tool_name` in the arguments, which `normalizeToolCall` does | Source: `core/runtime/DeferredTool.ts:45-49, 303-323`; live | ✓ |
 
 ## Cancel and errors
 
@@ -50,7 +51,8 @@ running. **Nothing here has been observed against a live server yet.** `npm run 
 | --- | --- | --- |
 | Cancel aborts the model request but **waits for running MCP tool calls to finish**, so we kill commands ourselves. It is idempotent, and the stream ends with a terminal `turn.done` | Docs: `docs/api/use-agent.mdx` | ✓ |
 | A cancelled state carries a reason: `client-cancelled`, `server-execution-timeout`, `cancelled-for-next-turn` or `abandoned` | Docs: `docs/api/use-agent.mdx` | ✓ |
-| Model transport failures and some statuses are retried twice by default (`MODEL_HTTP_MAX_RETRIES`). **How a dead endpoint or bad key surfaces, and how long it takes, is exactly what the smoke test measures** | Source: `.env.example`, `core/util/ssrfGuard.ts:495-530` | ✓ |
+| A dead endpoint ends the turn with `status: error` and `[Model Error] Cannot connect to API: connect ECONNREFUSED …` almost instantly. A bad key gives `[Model Error] Request failed (401): Incorrect API key provided`. Both are recognised by `classifyFailure` | Live | ✓ |
+| Port 9, and other ports on the fetch specification's blocked list, fail as `bad port` rather than as a refused connection, so Task C configs use an ordinary closed port | Live | ✓ |
 
 ## Fallback
 

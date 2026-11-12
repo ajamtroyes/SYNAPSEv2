@@ -18,6 +18,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:golden": "node tests/golden/fetch-flask.mjs && vitest run tests/golden",
+    "test:e2e": "node tests/e2e/run.mjs",
     "check": "npm run typecheck && npm test && npm run build",
     "trueforge": "node agent/scripts/start-trueforge.mjs",
     "setup:models": "node agent/scripts/setup.mjs",

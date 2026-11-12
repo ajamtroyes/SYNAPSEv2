@@ -5,11 +5,12 @@ In priority order. Owners are TBD until the team is set, and it is worth moving 
 
 ## P0: prove it works
 
-- [ ] Run `npm run smoke -- --write` and fix whatever it finds. If the loopback or approval checks fail, stop and rethink before anything else
+- [x] Run `npm run smoke -- --write` and fix whatever it finds: 11 of 11 pass on TrueForge 0.183.0
+- [x] Run the extension's own code against live TrueForge: `npm run test:e2e`, 7 of 7
 - [ ] Run the extension with F5 and `npm run mock-model`: panel loads, inline edit opens the review, Accept and Reject work per hunk, keyboard shortcuts work
 - [ ] Run Task A with a real model
 - [ ] Run Task B with a real model, and read the TrueForge session
-- [ ] Confirm `classifyFailure` matches the real messages the smoke test records for a dead endpoint and a bad key
+- [x] Confirm `classifyFailure` matches the real messages for a dead endpoint and a bad key
 - [ ] Register the team by **15 November**
 
 ## P1: scored behaviour

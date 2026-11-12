@@ -20,7 +20,13 @@ const BAD_KEY = 'smoke-badkey/mock';
 const results = [];
 const notes = [];
 
-async function check(name, run) {
+// `--only <text>` runs just the checks whose name contains it, after the setup they depend on.
+const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : undefined;
+
+async function check(name, run, { setup = false } = {}) {
+  if (only && !setup && !name.includes(only)) {
+    return true;
+  }
   const started = performance.now();
   try {
     const detail = await run();
@@ -69,7 +75,10 @@ async function streamTurn(sessionId, input, onEvent = () => undefined) {
     headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
     body: JSON.stringify({ input, stream: true }),
   });
-  assert(response.ok, `POST turns returned ${response.status}: ${await response.clone().text()}`);
+  // Read the body only on failure: reading it here would wait for the whole stream to finish.
+  if (!response.ok) {
+    throw new Error(`POST turns returned ${response.status}: ${await response.text()}`);
+  }
   const events = [];
   const decoder = new TextDecoder();
   let buffer = '';
@@ -192,9 +201,9 @@ const provider = (name, baseUrl, modelList = models) => ({ manifest: { type: 'cu
 try {
   await check('register custom providers on loopback', async () => {
     await must('PUT', '/api/v1/settings/model-providers', provider('smoke-live', mock.baseUrl));
-    await must('PUT', '/api/v1/settings/model-providers', provider('smoke-dead', 'http://127.0.0.1:9/v1'));
+    await must('PUT', '/api/v1/settings/model-providers', provider('smoke-dead', 'http://127.0.0.1:19999/v1'));
     await must('PUT', '/api/v1/settings/model-providers', provider('smoke-badkey', mock.baseUrl, [{ ...models[0], model_id: 'mock-401' }]));
-  });
+  }, { setup: true });
 
   const loopback = await check('TrueForge reaches an MCP server on 127.0.0.1 (needs OUTBOUND_URL_ALLOWED_HOSTS)', async () => {
     await must('PUT', '/api/v1/settings/mcp-servers', {
@@ -202,7 +211,7 @@ try {
     });
     const tools = await must('GET', `/api/v1/mcp-servers/${MCP_NAME}/tools`);
     assert(JSON.stringify(tools).includes('smoke_write'), `Tool not listed: ${JSON.stringify(tools).slice(0, 300)}`);
-  });
+  }, { setup: true });
   if (!loopback) {
     notes.push('Loopback failed, so later checks would fail for the same reason. Start TrueForge with `npm run trueforge`, which sets OUTBOUND_URL_ALLOWED_HOSTS.');
     throw new Error('Stopping: the agent cannot reach any tool.');
@@ -265,15 +274,21 @@ try {
   await check('cancel ends a running turn as cancelled', async () => {
     const session = await newSession(spec(LIVE));
     let asked = 0;
+    const timeline = [];
+    const started = performance.now();
     const events = await streamTurn(session, userMessage('SMOKE_SLOW'), async event => {
+      if (event.type !== 'model.message.delta' || asked === 0) {
+        timeline.push(`${Math.round(performance.now() - started)}ms ${event.type}`);
+      }
       if (event.type === 'model.message.delta' && asked === 0) {
         asked = performance.now();
-        await must('POST', `/api/v1/sessions/${session}/cancel`, {});
+        const response = await api('POST', `/api/v1/sessions/${session}/cancel`, {});
+        timeline.push(`${Math.round(performance.now() - started)}ms cancel returned ${response.status} ${response.text.slice(0, 120)}`);
       }
     });
     assert(asked > 0, 'No token arrived to cancel after');
     const state = terminal(events);
-    assert(state?.status === 'cancelled', `Terminal state: ${JSON.stringify(state)}`);
+    assert(state?.status === 'cancelled', `Terminal state ${state?.status} (${String(state?.reason ?? '')}). Timeline: ${timeline.join(' | ')}`);
     return `reason ${state.reason}, stream closed ${Math.round(performance.now() - asked)} ms after the request`;
   });
 

@@ -1,10 +1,10 @@
 {
-  "$comment": "For rehearsing Task C without a real provider. The primary points at a closed port, so every call fails; the extension should then move to the scripted model on its own. Start it first with: npm run mock-model. For the recorded demo, replace the fallback with the real model you declare in the write-up.",
+  "$comment": "For rehearsing Task C without a real provider. The primary points at a closed local port, so every call fails at once; the extension should then move to the scripted model on its own. Start it first with: npm run mock-model. For the recorded demo, replace the fallback with the real model you declare in the write-up.",
   "providers": [
     {
       "type": "custom",
       "name": "unreachable",
-      "base_url": "http://127.0.0.1:9/v1",
+      "base_url": "http://127.0.0.1:19999/v1",
       "models": [
         { "name": "primary", "model_id": "primary", "properties": { "context_length": 100000, "max_output_tokens": 4096 } }
       ]
