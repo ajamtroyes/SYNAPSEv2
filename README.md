@@ -7,6 +7,8 @@ Give it a request. It finds the right code in a repository too large for any con
 never had to spell out, shows every hunk for review before anything touches disk, and keeps working when the model behind it
 fails.
 
+> **New to this? Follow [the beginner guide](docs/TRY-IT.md).**
+
 > **Status:** early. All five required capabilities are written and their logic is tested, but it has not yet run against a live
 > TrueForge or inside VS Code. [What is verified, and what to do first](docs/progress/README.md).
 
