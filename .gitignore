@@ -44,3 +44,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Downloaded by the extension tests
+.vscode-test/

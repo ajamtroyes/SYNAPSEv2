@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ApprovalGate, approvalKey } from '../../extension/src/core/approvalGate';
-import { classifyFailure, FallbackPolicy } from '../../extension/src/core/fallback';
+import { classifyFailure, describeFailure, FallbackPolicy } from '../../extension/src/core/fallback';
 import { EditJournal } from '../../extension/src/core/journal';
 import { isSensitivePath, toWorkspacePath, ToolInputError } from '../../extension/src/core/paths';
 import { applyEdits } from '../../extension/src/core/proposals';
@@ -144,6 +144,32 @@ describe('applyEdits', () => {
     expect(result.ok ? '' : result.reason).toMatch(reason);
   });
 
+  it('tolerates trailing whitespace the model dropped, keeping the rest of the file intact', () => {
+    const file = 'def a():   \n    return 1\n\nx = 2\n';
+    expect(applyEdits('f', file, [{ old_text: 'def a():\n    return 1\n', new_text: 'def a():\n    return 2\n' }])).toEqual({
+      ok: true,
+      proposed: 'def a():\n    return 2\n\nx = 2\n',
+    });
+  });
+
+  it('tolerates indentation the model dropped, re-indenting the replacement to fit', () => {
+    const file = 'class A:\n    def a(self):\n        return 1\n';
+    expect(applyEdits('f', file, [{ old_text: 'def a(self):\n    return 1', new_text: 'def a(self):\n    return 2' }])).toEqual({
+      ok: true,
+      proposed: 'class A:\n    def a(self):\n        return 2\n',
+    });
+  });
+
+  it('still refuses a loose match that is ambiguous', () => {
+    const result = applyEdits('f', '  x = 1\n    x = 1\n', [{ old_text: 'x = 1', new_text: 'y' }]);
+    expect(result.ok ? '' : result.reason).toMatch(/more than once/);
+  });
+
+  it('still refuses text that is genuinely absent', () => {
+    const result = applyEdits('f', 'def a():\n    return 1\n', [{ old_text: 'def b():\n    return 1', new_text: 'x' }]);
+    expect(result.ok ? '' : result.reason).toMatch(/not found/);
+  });
+
   it('rejects edits that change nothing', () => {
     const result = applyEdits('f', 'same', [{ old_text: 'same', new_text: 'same' }]);
     expect(result.ok ? '' : result.reason).toMatch(/change nothing/);
@@ -213,3 +239,24 @@ describe('FallbackPolicy', () => {
     expect(classifyFailure(message)).toBe('transient');
   });
 });
+
+describe('describeFailure', () => {
+  // The exact messages TrueForge 0.183.0 produced in the smoke test.
+  it('explains an unreachable endpoint', () => {
+    expect(describeFailure('[Model Error] Cannot connect to API: connect ECONNREFUSED 127.0.0.1:19999', ['local/coder'])).toBe(
+      'Could not reach the model local/coder. Check that the endpoint configured in TrueForge is running.',
+    );
+  });
+
+  it('explains a rejected key, naming every model tried', () => {
+    expect(describeFailure('[Model Error] Request failed (401): Incorrect API key provided', ['a/one', 'b/two'])).toBe(
+      'The provider rejected the API key for any of the configured models (a/one, b/two). Check the key configured in TrueForge.',
+    );
+  });
+
+  it('explains rate limits, and passes anything else through', () => {
+    expect(describeFailure('Request failed (429)', ['a/one'])).toMatch(/rate-limited/);
+    expect(describeFailure('something odd', ['a/one'])).toBe('The model failed: something odd');
+  });
+});
+

@@ -19,6 +19,7 @@
     "test:watch": "vitest",
     "test:golden": "node tests/golden/fetch-flask.mjs && vitest run tests/golden",
     "test:e2e": "node tests/e2e/run.mjs",
+    "test:vscode": "npm run build && node tests/vscode/run.mjs",
     "check": "npm run typecheck && npm test && npm run build",
     "trueforge": "node agent/scripts/start-trueforge.mjs",
     "setup:models": "node agent/scripts/setup.mjs",
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "@vscode/test-electron": "^3.1.0",
     "typescript": "^5.7.0",
     "vitest": "^3.2.0"
   }

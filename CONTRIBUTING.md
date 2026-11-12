@@ -31,6 +31,8 @@ Requires Node.js 22.14 or newer.
 | `npm run watch` | Rebuilds the extension on change. Press F5 in VS Code to run it |
 | `npm run trueforge` | Starts TrueForge locally, able to reach the extension |
 | `npm run smoke` | Checks the behaviour we rely on against a running TrueForge, with no API key |
+| `npm run test:e2e` | Runs the extension's code against a running TrueForge, with the scripted model |
+| `npm run test:vscode` | Runs the extension inside a real VS Code against a running TrueForge |
 | `npm run mock-model` | Starts a scripted model, for working on the editor side at no cost |
 | `npm run demo:flask -- setup` | Prepares the pinned Flask checkout for the fixed tasks |
 

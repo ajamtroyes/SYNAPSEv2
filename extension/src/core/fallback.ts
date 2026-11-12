@@ -9,6 +9,27 @@ export function classifyFailure(message: string): FailureClass {
     : 'transient';
 }
 
+/**
+ * Says what went wrong in words a user can act on. The harness's own text, such as
+ * "[Model Error] Cannot connect to API: connect ECONNREFUSED 127.0.0.1:19999", stays in the panel log.
+ */
+export function describeFailure(message: string, models: readonly string[]): string {
+  const which = models.length === 1 ? `the model ${models[0] ?? ''}` : `any of the configured models (${models.join(', ')})`;
+  if (classifyFailure(message) === 'auth') {
+    return `The provider rejected the API key for ${which}. Check the key configured in TrueForge.`;
+  }
+  if (/ECONNREFUSED|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|ECONNRESET|cannot connect|fetch failed|bad port|socket hang up/i.test(message)) {
+    return `Could not reach ${which}. Check that the endpoint configured in TrueForge is running.`;
+  }
+  if (/\b429\b|rate.?limit|quota|overloaded/i.test(message)) {
+    return `${models.length === 1 ? 'The model is' : 'Every configured model is'} rate-limited or overloaded. Try again shortly.`;
+  }
+  if (/terminal event|TrueForge/i.test(message)) {
+    return `TrueForge stopped responding (${message}).`;
+  }
+  return `The model failed: ${message}`;
+}
+
 export type FallbackStep =
   | { action: 'retry'; model: string; attempt: number; delayMs: number }
   | { action: 'switch'; from: string; model: string }

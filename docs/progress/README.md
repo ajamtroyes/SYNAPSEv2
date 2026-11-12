@@ -4,8 +4,8 @@ Keep this honest. It feeds the write-up's limitations section, and it is how tea
 
 ## Status, 12 November 2026
 
-All five capabilities are written, and **the extension's code now runs end to end against a live TrueForge**. The editor UI
-itself (panel, review editor, CodeLens, keybindings) is the main thing still unproven, along with behaviour on a real model.
+All five capabilities are written, and **the extension runs end to end inside a real VS Code against a live TrueForge**. The main
+thing still unproven is behaviour on a real model, which none of our tests can check.
 
 ### Verified
 
@@ -13,6 +13,7 @@ itself (panel, review editor, CodeLens, keybindings) is the main thing still unp
 | --- | --- |
 | The TrueForge contract we rely on: loopback MCP, approval by name, unchanged arguments, deny, deferred tools, cancel, both Task C failures, the PATCH model swap | `npm run smoke`, live on 0.183.0, 11 of 11 ([results](../research/smoke-results.md)) |
 | The extension's real code against live TrueForge: inline edit, a three-file agent run with parallel approvals and a command, rejection, cancel with rollback, fallback, total failure, deferred tools | `npm run test:e2e`, 7 of 7, with the scripted model standing in for a real one |
+| The built extension in VS Code 1.146.0: activation, the panel, check setup, inline edit with per-hunk CodeLens, undo change and run, a three-file agent run with command approval and the ledger, stop, abandoning a review, fallback, total failure | `npm run test:vscode`, 9 of 9 |
 | Review, journal, approval gate, fallback, cancel and rollback logic | Unit tests with a scripted gateway |
 | MCP server, including auth, tools and approved writes | Integration tests over real HTTP with the official MCP client |
 | Retrieval on the real Flask 3.1.3 for Task B | `npm run test:golden` |
@@ -22,7 +23,7 @@ itself (panel, review editor, CodeLens, keybindings) is the main thing still unp
 
 | What | How | Why it matters |
 | --- | --- | --- |
-| **The extension in VS Code** | F5, see the [README](../../README.md) | The panel, review editor, CodeLens and decorations have only been compiled |
+| How the review editor and panel look on video | F5, see the [README](../../README.md) | Tests check behaviour, not colours, layout or readability |
 | **Real model behaviour** | Tasks A, B and C with a real model | Whether the agent uses the tools well, states its choices and uses subagents depends on the model and our instructions |
 | `npm run demo:flask -- setup` | Run it | Installs Flask's dependencies from PyPI |
 | Clean-clone setup by someone else | Follow the README on a fresh machine | It is a submission requirement |
@@ -48,6 +49,8 @@ Work is listed in the [backlog](backlog.md).
 
 Add a line when something real changes, most recent first.
 
+- **12 Nov:** Added `npm run test:vscode`, which drives the built extension in a real VS Code: 9 of 9. Failures now read in plain
+  language. `old_text` matching tolerates whitespace and indentation slips from weaker models, still requiring a single match.
 - **12 Nov:** Ran TrueForge live for the first time. The smoke test passes 11 of 11 after fixing a bug in the script itself, and new
   end-to-end tests run the extension's real code against it, 7 of 7. Corrected the research note: deferred calls report `call_tool`
   as their tool name.

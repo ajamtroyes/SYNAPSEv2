@@ -22,6 +22,8 @@ export type PanelMessage =
 export class AgentPanel implements vscode.WebviewViewProvider {
   private view: vscode.WebviewView | undefined;
   private backlog: PanelMessage[] = [];
+  /** Every message sent, so extension tests can see what the panel was told. */
+  readonly sent: PanelMessage[] = [];
 
   constructor(
     private readonly extensionUri: vscode.Uri,
@@ -44,6 +46,7 @@ export class AgentPanel implements vscode.WebviewViewProvider {
   }
 
   post(message: PanelMessage): void {
+    this.sent.push(message);
     if (this.view) {
       void this.view.webview.postMessage(message);
     } else {

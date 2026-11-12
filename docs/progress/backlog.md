@@ -7,7 +7,8 @@ In priority order. Owners are TBD until the team is set, and it is worth moving 
 
 - [x] Run `npm run smoke -- --write` and fix whatever it finds: 11 of 11 pass on TrueForge 0.183.0
 - [x] Run the extension's own code against live TrueForge: `npm run test:e2e`, 7 of 7
-- [ ] Run the extension with F5 and `npm run mock-model`: panel loads, inline edit opens the review, Accept and Reject work per hunk, keyboard shortcuts work
+- [x] Run the extension in VS Code: `npm run test:vscode`, 9 of 9
+- [ ] Look at it with F5 and `npm run mock-model`: is the review editor readable on video?
 - [ ] Run Task A with a real model
 - [ ] Run Task B with a real model, and read the TrueForge session
 - [x] Confirm `classifyFailure` matches the real messages for a dead endpoint and a bad key
@@ -25,7 +26,7 @@ In priority order. Owners are TBD until the team is set, and it is worth moving 
 
 ## P2: robustness
 
-- [ ] Weak models produce inexact `old_text`. Consider a whitespace-tolerant match, still requiring a unique result
+- [x] Weak models produce inexact `old_text`: matching now tolerates whitespace and indentation, still requiring a unique result
 - [ ] Multi-line decorators split from their function when chunking
 - [ ] Companion matching can pull in fixtures such as `tests/static/config.json`
 - [ ] Cache the retrieval index for large repositories
@@ -33,7 +34,7 @@ In priority order. Owners are TBD until the team is set, and it is worth moving 
 - [ ] Format-on-save can change reviewed content when an edit is saved
 - [ ] Offer a way to keep already accepted hunks on cancel ([ADR 0004](../decisions/0004-cancel-rolls-back.md))
 - [ ] Support several windows at once ([ADR 0002](../decisions/0002-loopback-mcp-server.md))
-- [ ] Add Extension Host tests with `@vscode/test-electron`, as the editor layer has no automated tests
+- [x] Add Extension Host tests with `@vscode/test-electron`: `npm run test:vscode`
 - [ ] A status line in the panel for the current model and cost per run (turn metrics include `total_cost_in_usd`), which also helps the write-up's cost figures
 
 ## Submission

@@ -7,6 +7,7 @@ import type { AgentDefinition } from '../core/agentDefinition';
 import { AgentRun, type RunEvent, type RunResult } from '../core/agentRun';
 import { ApprovalGate } from '../core/approvalGate';
 import { CommandRunner } from '../core/commandRunner';
+import { describeFailure } from '../core/fallback';
 import { EditJournal, type UndoReport } from '../core/journal';
 import { assembleMessage, buildLedger, parseMentions, resolveMentions } from '../core/mentions';
 import { isSensitivePath } from '../core/paths';
@@ -175,7 +176,8 @@ export class RunController implements vscode.Disposable {
     });
   }
 
-  async startInlineRun(): Promise<void> {
+  /** `presetInstruction` skips the prompt, for keybindings with arguments and for tests. */
+  async startInlineRun(presetInstruction?: string): Promise<void> {
     const editor = vscode.window.activeTextEditor;
     if (!editor || editor.selection.isEmpty) {
       void vscode.window.showInformationMessage('Select the code you want to change first.');
@@ -188,7 +190,7 @@ export class RunController implements vscode.Disposable {
       void vscode.window.showErrorMessage(`${path} may hold secrets, so it is not sent to a model.`);
       return;
     }
-    const instruction = await vscode.window.showInputBox({
+    const instruction = presetInstruction ?? await vscode.window.showInputBox({
       title: `Edit selection in ${path}`,
       prompt: 'Describe the change in plain language.',
       ignoreFocusOut: true,
@@ -280,9 +282,12 @@ export class RunController implements vscode.Disposable {
         break;
       case 'cancelled':
         break;
-      case 'failed':
-        void vscode.window.showErrorMessage(`Synapse could not finish: ${result.message}. The workspace was left unchanged.`);
+      case 'failed': {
+        const text = `Synapse could not finish. ${describeFailure(result.message, readSettings().models)} Your files were not changed.`;
+        this.panel.post({ type: 'notice', text });
+        void vscode.window.showErrorMessage(text);
         break;
+      }
     }
   }
 
