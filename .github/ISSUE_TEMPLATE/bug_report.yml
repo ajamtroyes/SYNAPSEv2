@@ -1,0 +1,42 @@
+name: Bug report
+description: Report a reproducible problem in the project.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the problem clearly. Do not include passwords, API keys, or private user data.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Explain the issue and what you expected to happen.
+      placeholder: A concise description of the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: List the steps needed to reproduce the issue.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include relevant versions, operating system, and component.
+      placeholder: Component, VS Code version, TrueForge version, model used, and operating system.
+    validations:
+      required: false
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs or screenshots
+      description: Remove secrets and personal data before sharing.
+    validations:
+      required: false

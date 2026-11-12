@@ -1,0 +1,59 @@
+name: Validate repository structure
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  required-files:
+    name: Check scaffold files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify required paths
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required_paths=(
+            ".github/ISSUE_TEMPLATE"
+            ".github/workflows"
+            ".claude/rules"
+            "docs/competition"
+            "docs/architecture"
+            "docs/decisions"
+            "docs/research"
+            "docs/progress"
+            "extension"
+            "agent"
+            "agent/definitions/coder.json"
+            "agent/definitions/inline-edit.json"
+            "agent/models.example.json"
+            "tests"
+            "examples"
+            "CLAUDE.md"
+            "README.md"
+            "CONTRIBUTING.md"
+            ".gitignore"
+            "LICENSE"
+          )
+
+          missing=()
+          for path in "${required_paths[@]}"; do
+            if [[ ! -e "$path" ]]; then
+              missing+=("$path")
+            fi
+          done
+
+          if (( ${#missing[@]} > 0 )); then
+            printf 'Missing required path: %s\n' "${missing[@]}"
+            exit 1
+          fi
+
+          echo "All required scaffold paths are present."

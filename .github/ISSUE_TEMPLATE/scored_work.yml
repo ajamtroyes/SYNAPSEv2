@@ -1,0 +1,42 @@
+name: Scored work
+description: Track work toward a judging criterion.
+title: "[Scored]: "
+body:
+  - type: dropdown
+    id: criterion
+    attributes:
+      label: Criterion
+      description: See docs/competition/scoring.md for the anchors.
+      options:
+        - A1 Inline edit
+        - A2 Agent mode
+        - A3 Streaming and cancellation
+        - B1 Context assembly
+        - B2 Diff safety
+        - B3 Resilience
+        - B4 TrueForge integration depth
+        - C1 Video
+        - C2 Write-up
+        - Eligibility
+    validations:
+      required: true
+  - type: textarea
+    id: anchor
+    attributes:
+      label: Anchor we are aiming for
+      description: Quote the anchor from the scoring table.
+    validations:
+      required: true
+  - type: textarea
+    id: work
+    attributes:
+      label: What needs to happen
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: How a judge will see it
+      description: Judges score what the extension does on screen, not how clever the model is.
+    validations:
+      required: true

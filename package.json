@@ -1,0 +1,33 @@
+{
+  "name": "synapse-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Editor-native coding agent for VS Code whose agent loop runs on TrueForge.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "workspaces": [
+    "extension"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace extension",
+    "watch": "npm run watch --workspace extension",
+    "package": "npm run package --workspace extension",
+    "typecheck": "tsc -p extension/tsconfig.json --noEmit && tsc -p tests/tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:golden": "node tests/golden/fetch-flask.mjs && vitest run tests/golden",
+    "check": "npm run typecheck && npm test && npm run build",
+    "trueforge": "node agent/scripts/start-trueforge.mjs",
+    "setup:models": "node agent/scripts/setup.mjs",
+    "smoke": "node agent/scripts/smoke.mjs",
+    "mock-model": "node examples/mock-model/mock-model.mjs",
+    "demo:flask": "bash examples/flask-demo/flask-demo.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  }
+}

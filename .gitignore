@@ -4,6 +4,7 @@
 !.env.example
 *.pem
 *.key
+agent/models.json
 
 # Python
 __pycache__/
@@ -24,12 +25,20 @@ coverage/
 build/
 out/
 *.egg-info/
+*.vsix
+
+# Fetched by scripts: the pinned Flask checkouts
+.cache/
 
 # Editors and operating systems
 .DS_Store
 Thumbs.db
+*:Zone.Identifier
 .idea/
-.vscode/
+# F5 and the build task are shared; personal settings are not.
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
 *.swp
 *.swo
 
